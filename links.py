@@ -21,6 +21,11 @@ class Links:
 
     def get_resource_link(self):
         print("TODO")
+        for link in self.soup.find_all('video', src=True):
+            if (link['src'][0:4]!='http'):
+                self.links.add(self.host + link['src'])
+            else:
+                self.links.add(link['src'])
 
     def exec_regex(self,regex):
         context = "\n".join(self.links)
