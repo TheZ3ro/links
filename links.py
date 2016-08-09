@@ -2,12 +2,13 @@
 
 from bs4 import BeautifulSoup
 import requests, sys, os
+import random, string
 import urllib
 import re
 
 class Links:
     def download(self, theurl, thedir):
-        print("Downloading external tool... -> "+thedir)
+        print("[i] Downloading file to: "+thedir)
         urllib.urlretrieve(theurl, thedir)
 
     def get_ahref_link(self):
@@ -16,8 +17,6 @@ class Links:
                 self.links.add(self.host + link['href'])
             else:
                 self.links.add(link['href'])
-                #if ".pdf" in link['href']:
-                #    self.download(proto+link['href'],"download/"+link['href'].split("/")[-1])
 
     def get_resource_link(self):
         print("TODO")
@@ -48,7 +47,7 @@ class Links:
                 i=i+1
                 print("  "+str(i)+". "+link)
 
-    def __init__(self, host, args={'r':False,'a':False,'d':False,'l':False,'e':None}):
+    def __init__(self, host, main=False, args={'r':False,'a':False,'d':False,'l':False,'e':None}):
         # Fixing the trailing / in host
         self.host = host if host[-1:]!='/' else host[:-1]
 
@@ -83,8 +82,15 @@ class Links:
         # RegEx P0w3r
         if args['e'] != None:
             self.exec_regex(args['e'])
-
-        self.print_links(args['l'])
+        
+        # Can we print?
+        if main == True:
+            self.print_links(args['l'])
+            if args['l'] == False AND args['d'] == True:
+                for link in self.links:
+                    self.download(link,link.split("/")[-1])
+            
+        return self.links
 
 
 # Usage as an object:
@@ -105,4 +111,4 @@ if __name__ == '__main__':
     host = args['url']
     del args['url']
 
-    Links(host,args=args)
+    Links(host,args=args,main=True)
