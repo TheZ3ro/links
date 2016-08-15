@@ -11,24 +11,36 @@ class Links:
         print("[i] Downloading file to: "+thedir)
         urllib.urlretrieve(theurl, thedir)
 
+    def add_link(self, url):
+        if (url[0:4]!='http'):
+            if (url[0:1]=='/'):
+                self.links.add(self.domain + url)
+            else:
+                self.links.add(self.host + url)
+        else:
+            self.links.add(url)
+
     def get_ahref_link(self):
         for link in self.soup.find_all('a', href=True):
-            if (link['href'][0:4]!='http'):
-                self.links.add(self.host + link['href'])
-            else:
-                self.links.add(link['href'])
+            self.add_link(link['href'])
 
     def get_resource_link(self):
         print("TODO")
+        for link in self.soup.find_all('img', src=True):
+            self.add_link(link['src'])
         for link in self.soup.find_all('video', src=True):
-            if (link['src'][0:4]!='http'):
-                self.links.add(self.host + link['src'])
-            else:
-                self.links.add(link['src'])
+            self.add_link(link['src'])
 
     def exec_regex(self,regex):
         context = "\n".join(self.links)
         results = set(re.compile(regex).findall(context))
+        self.links = results
+
+    def do_sub(self,old,new):
+        pattern = re.compile(old)
+        results = set()
+        for l in self.links:
+            results.add(pattern.sub(new, l))
         self.links = results
 
     def print_links(self,mode):
@@ -47,9 +59,14 @@ class Links:
                 i=i+1
                 print("  "+str(i)+". "+link)
 
-    def __init__(self, host, main=False, args={'r':False,'a':False,'d':False,'l':False,'e':None}):
+    def finalize(self):
+        return self.links
+
+    def __init__(self, host, main=False, args={'r':False,'a':False,'d':False,'l':False,'e':None,'m':None,'s':''}):
         # Fixing the trailing / in host
         self.host = host if host[-1:]!='/' else host[:-1]
+        self.domain = self.host.split("/")
+        self.domain = self.domain[0]+"//"+self.domain[2]
 
         # If there is a dot in the domain name
         if "." in self.host.split("/")[-1]:
@@ -82,15 +99,18 @@ class Links:
         # RegEx P0w3r
         if args['e'] != None:
             self.exec_regex(args['e'])
-        
+
+        if args['m'] != None:
+            self.do_sub(args['m'],args['s'])
+
         # Can we print?
         if main == True:
             self.print_links(args['l'])
-            if args['l'] == False AND args['d'] == True:
+            if args['l'] == False and args['d'] == True:
                 for link in self.links:
                     self.download(link,link.split("/")[-1])
-            
-        return self.links
+
+        return None #self.links
 
 
 # Usage as an object:
@@ -106,6 +126,8 @@ if __name__ == '__main__':
     parser.add_argument('-a', action='store_true', help='select resource and visible links')
     parser.add_argument('-r', action='store_true', help='select only resource links (audio,video,img,background)')
     parser.add_argument('-e', help='select links that follow RegEx')
+    parser.add_argument('-m', help='select RegEx for substitution')
+    parser.add_argument('-s', help='select string to substitute')
 
     args = vars(parser.parse_args())
     host = args['url']

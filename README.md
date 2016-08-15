@@ -26,6 +26,8 @@ optional arguments:
   -a          select resource and visible links
   -r          select only resource links (audio,video,img,background)
   -e E        select links that follow RegEx
+  -m M        select RegEx for substitution match
+  -s S        select string to substitute
 ```
 
 #### Classic
@@ -63,3 +65,8 @@ Get Visible links that use `https` from `google.com`
 Get `.png` or `.jpg` Resource from `google.com`
 
     links.py -re "(.*\.jpg|.*\.png)" https://google.com
+
+#### RegEx Substitution Support
+Strip all `https` links to `http`
+
+    links.py -m "https" -s "http" https://google.com
