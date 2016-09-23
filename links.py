@@ -13,7 +13,9 @@ class Links:
 
     def add_link(self, url):
         if (url[0:4]!='http'):
-            if (url[0:1]=='/'):
+            if (url[0:2]=='//'):
+                self.links.add(self.proto + url)
+            elif (url[0:1]=='/'):
                 self.links.add(self.domain + url)
             else:
                 self.links.add(self.host + url)
@@ -25,7 +27,13 @@ class Links:
             self.add_link(link['href'])
 
     def get_resource_link(self):
-        print("TODO")
+        results = re.compile('url\(\s*"(.*)"\s*\)').findall(self.page)
+        for link in results:
+            self.add_link(link)
+        for link in self.soup.find_all('div', attrs={"data-original": True}):
+            self.add_link(link['data-original'])
+        for link in self.soup.find_all('img', attrs={"ng-src": True}):
+            self.add_link(link['ng-src'])
         for link in self.soup.find_all('img', src=True):
             self.add_link(link['src'])
         for link in self.soup.find_all('video', src=True):
@@ -67,11 +75,7 @@ class Links:
         self.host = host if host[-1:]!='/' else host[:-1]
         self.domain = self.host.split("/")
         self.domain = self.domain[0]+"//"+self.domain[2]
-
-        # If there is a dot in the domain name
-        if "." in self.host.split("/")[-1]:
-            # Get the protocol
-            self.proto = self.host.replace(self.host.split("/")[-1],"")
+        self.proto = self.host.split("/")[0]
 
         # Make the request and download the page
         try:
