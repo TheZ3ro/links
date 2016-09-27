@@ -124,7 +124,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(prog='links')
-    parser.add_argument('url', help='target web page')
+    parser.add_argument('url', help='target web page', nargs='+')
     parser.add_argument('-l', action='store_true', help='output found links as plain list')
     parser.add_argument('-d', action='store_true', help='download resource directly in CWD')
     parser.add_argument('-a', action='store_true', help='select resource and visible links')
@@ -134,7 +134,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', help='select string to substitute')
 
     args = vars(parser.parse_args())
-    host = args['url']
+    hosts = args['url']
     del args['url']
 
-    Links(host,args=args,main=True)
+    for i,host in enumerate(hosts):
+        print(str(i+1)+". Scraping Page at: "+host)
+        Links(host,args=args,main=True)
